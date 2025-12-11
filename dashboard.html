@@ -18,53 +18,47 @@ img.foto-pegawai { width: 60px; height: 70px; object-fit: cover; border-radius: 
 </style>
 </head>
 <script type="module">
-  // Import Firebase
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBVap1cFARQ0yFodn6sLcMd3oCHgbOXxrs",
-  authDomain: "web-kepegawaian-satpol-pp.firebaseapp.com",
-  projectId: "web-kepegawaian-satpol-pp",
-  storageBucket: "https://console.firebase.google.com/project/web-kepegawaian-satpol-pp/database/web-kepegawaian-satpol-pp-default-rtdb/data/~2Fp",
-  messagingSenderId: "490133570416",
-  appId: "1:490133570416:web:8e6f3d8456612481ca05b5",
-  measurementId: "G-6HEBSM3VT5"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBVap1cFARQ0yFodn6sLcMd3oCHgbOXxrs",
+    authDomain: "web-kepegawaian-satpol-pp.firebaseapp.com",
+    projectId: "web-kepegawaian-satpol-pp",
+    storageBucket: "web-kepegawaian-satpol-pp.appspot.com",
+    messagingSenderId: "490133570416",
+    appId: "1:490133570416:web:8e6f3d8456612481ca05b5",
+    measurementId: "G-6HEBSM3VT5",
+    databaseURL: "https://web-kepegawaian-satpol-pp-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
 
-  // Fungsi ambil data dari Firebase
   function loadDashboard() {
     const dbRef = ref(db);
 
     get(child(dbRef, "asn")).then((snapshot) => {
       if (snapshot.exists()) {
-        document.getElementById("jumlahASN").innerHTML = snapshot.val().length;
+        document.getElementById("jumlahASN").innerHTML = Object.keys(snapshot.val()).length;
       }
     });
 
     get(child(dbRef, "nonasn")).then((snapshot) => {
       if (snapshot.exists()) {
-        document.getElementById("jumlahNonASN").innerHTML = snapshot.val().length;
+        document.getElementById("jumlahNonASN").innerHTML = Object.keys(snapshot.val()).length;
       }
     });
 
     get(child(dbRef, "pelanggaran")).then((snapshot) => {
       if (snapshot.exists()) {
-        document.getElementById("totalPelanggaran").innerHTML = snapshot.val().length;
+        document.getElementById("totalPelanggaran").innerHTML = Object.keys(snapshot.val()).length;
       }
     });
   }
 
-  // Jalankan
   loadDashboard();
 </script>
 <body>
@@ -1009,6 +1003,11 @@ updateStats();
 
 </body>
 </html>
+
+
+
+
+
 
 
 
