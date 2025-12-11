@@ -37,27 +37,31 @@ img.foto-pegawai { width: 60px; height: 70px; object-fit: cover; border-radius: 
   const analytics = getAnalytics(app);
   const db = getDatabase(app);
 
-  function loadDashboard() {
+  function loadDashboard() 
     const dbRef = ref(db);
 
     get(child(dbRef, "asn")).then((snapshot) => {
-      if (snapshot.exists()) {
-        document.getElementById("jumlahASN").innerHTML = Object.keys(snapshot.val()).length;
-      }
+  if (snapshot.exists()) {
+    let total = 0;
+    let data = snapshot.val();
+    Object.values(data).forEach(item => {
+      total += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
     });
-
-    get(child(dbRef, "nonasn")).then((snapshot) => {
-      if (snapshot.exists()) {
-        document.getElementById("jumlahNonASN").innerHTML = Object.keys(snapshot.val()).length;
-      }
-    });
-
-    get(child(dbRef, "pelanggaran")).then((snapshot) => {
-      if (snapshot.exists()) {
-        document.getElementById("totalPelanggaran").innerHTML = Object.keys(snapshot.val()).length;
-      }
-    });
+    document.getElementById("totalPelanggaran").innerHTML = total;
   }
+});
+
+get(child(dbRef, "nonasn")).then((snapshot) => {
+  if (snapshot.exists()) {
+    let total = document.getElementById("totalPelanggaran");
+    let current = parseInt(total.innerHTML);
+    let data = snapshot.val();
+    Object.values(data).forEach(item => {
+      current += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
+    });
+    total.innerHTML = current;
+  }
+});
 
   loadDashboard();
 </script>
@@ -1003,6 +1007,12 @@ updateStats();
 
 </body>
 </html>
+
+
+
+
+
+
 
 
 
