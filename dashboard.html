@@ -578,28 +578,168 @@ function loadNONASN() {
 /* ============================
    Edit / Hapus NON-ASN
    ============================ */
-function editNONASN(index) {
-    let data = dataNONASN[index];
-    document.getElementById("modalNONASNTitle").textContent = "Edit NON-ASN";
-    document.getElementById("nonasn_index").value = index;
+// ======== DATA LOCAL STORAGE ========
+let dataASN = JSON.parse(localStorage.getItem("dataASN")) || [];
+let dataNONASN = JSON.parse(localStorage.getItem("dataNONASN")) || [];
 
-    document.getElementById("nonasn_nama").value = data.nama;
-    document.getElementById("nonasn_nip").value = data.nip;
-    document.getElementById("nonasn_ttl").value = data.ttl;
-    document.getElementById("nonasn_telp").value = data.telp;
-    document.getElementById("nonasn_jk").value = data.jk;
-    document.getElementById("nonasn_email").value = data.email;
-
-    var modal = new bootstrap.Modal(document.getElementById("modalNONASN"));
-    modal.show();
+// ======== SIMPAN KE STORAGE ========
+function saveData() {
+    localStorage.setItem("dataASN", JSON.stringify(dataASN));
+    localStorage.setItem("dataNONASN", JSON.stringify(dataNONASN));
+    renderTables();
+    updateDashboard();
 }
 
-function deleteNONASN(index) {
-    if (confirm("Yakin ingin menghapus data ini?")) {
-        dataNONASN.splice(index, 1);
-        localStorage.setItem("dataNONASN", JSON.stringify(dataNONASN));
-        loadNONASN();
+// RESET FORM
+function resetForm() {
+    document.getElementById("formPegawai").reset();
+    document.getElementById("indexPegawai").value = "";
+}
+
+// TAMBAH ASN
+function tambahASN() {
+    resetForm();
+    document.getElementById("jenisPegawai").value = "ASN";
+    document.getElementById("modalTitle").innerText = "Tambah Pegawai ASN";
+    $("#modalPegawai").modal("show");
+}
+
+// TAMBAH NON-ASN
+function tambahNonASN() {
+    resetForm();
+    document.getElementById("jenisPegawai").value = "NONASN";
+    document.getElementById("modalTitle").innerText = "Tambah Pegawai Non-ASN";
+    $("#modalPegawai").modal("show");
+}
+
+// SIMPAN DATA (Tambah / Edit)
+function simpanPegawai() {
+    const jenis = document.getElementById("jenisPegawai").value;
+    const index = document.getElementById("indexPegawai").value;
+
+    const pegawai = {
+        nip: document.getElementById("nip").value,
+        nama: document.getElementById("nama").value,
+        jk: document.getElementById("jk").value,
+        pendidikan: document.getElementById("pendidikan").value,
+        jabatan: document.getElementById("jabatan").value,
+        alamat: document.getElementById("alamat").value
+    };
+
+    // EDIT
+    if (index !== "") {
+        if (jenis === "ASN") dataASN[index] = pegawai;
+        else dataNONASN[index] = pegawai;
+
+    // TAMBAH BARU
+    } else {
+        if (jenis === "ASN") dataASN.push(pegawai);
+        else dataNONASN.push(pegawai);
     }
+
+    saveData();
+    $("#modalPegawai").modal("hide");
+}
+
+// EDIT ASN
+function editASN(i) {
+    const d = dataASN[i];
+
+    document.getElementById("modalTitle").innerText = "Edit ASN";
+    document.getElementById("jenisPegawai").value = "ASN";
+    document.getElementById("indexPegawai").value = i;
+
+    document.getElementById("nip").value = d.nip;
+    document.getElementById("nama").value = d.nama;
+    document.getElementById("jk").value = d.jk;
+    document.getElementById("pendidikan").value = d.pendidikan;
+    document.getElementById("jabatan").value = d.jabatan;
+    document.getElementById("alamat").value = d.alamat;
+
+    $("#modalPegawai").modal("show");
+}
+
+// EDIT NON-ASN
+function editNonASN(i) {
+    const d = dataNONASN[i];
+
+    document.getElementById("modalTitle").innerText = "Edit Non-ASN";
+    document.getElementById("jenisPegawai").value = "NONASN";
+    document.getElementById("indexPegawai").value = i;
+
+    document.getElementById("nip").value = d.nip;
+    document.getElementById("nama").value = d.nama;
+    document.getElementById("jk").value = d.jk;
+    document.getElementById("pendidikan").value = d.pendidikan;
+    document.getElementById("jabatan").value = d.jabatan;
+    document.getElementById("alamat").value = d.alamat;
+
+    $("#modalPegawai").modal("show");
+}
+
+// HAPUS ASN
+function hapusASN(i) {
+    if (confirm("Hapus ASN ini?")) {
+        dataASN.splice(i, 1);
+        saveData();
+    }
+}
+
+// HAPUS NON-ASN
+function hapusNonASN(i) {
+    if (confirm("Hapus Non-ASN ini?")) {
+        dataNONASN.splice(i, 1);
+        saveData();
+    }
+}
+
+// RENDER TABEL
+function renderTables() {
+    let asnHTML = "";
+    dataASN.forEach((p, i) => {
+        asnHTML += `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${p.nip}</td>
+            <td>${p.nama}</td>
+            <td>${p.jk}</td>
+            <td>${p.pendidikan}</td>
+            <td>${p.jabatan}</td>
+            <td>${p.alamat}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editASN(${i})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="hapusASN(${i})">Delete</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("tbodyASN").innerHTML = asnHTML;
+
+    let nonHTML = "";
+    dataNONASN.forEach((p, i) => {
+        nonHTML += `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${p.nip}</td>
+            <td>${p.nama}</td>
+            <td>${p.jk}</td>
+            <td>${p.pendidikan}</td>
+            <td>${p.jabatan}</td>
+            <td>${p.alamat}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editNonASN(${i})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="hapusNonASN(${i})">Delete</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("tbodyNONASN").innerHTML = nonHTML;
+}
+
+// UPDATE DASHBOARD
+function updateDashboard() {
+    document.getElementById("jumlahASN").innerText = dataASN.length;
+    document.getElementById("jumlahNONASN").innerText = dataNONASN.length;
 }
 
 /* ==========================================================
@@ -819,5 +959,7 @@ updateStats();
 
 </body>
 </html>
+
+
 
 
