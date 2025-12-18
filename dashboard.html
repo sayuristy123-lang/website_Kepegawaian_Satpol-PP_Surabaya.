@@ -18,52 +18,64 @@ img.foto-pegawai { width: 60px; height: 70px; object-fit: cover; border-radius: 
 </style>
 </head>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-  const firebaseConfig = {
-  apiKey: "AIzaSyBVap1cFARQ0yFodn6sLcMd3oCHgbOXxrs",
-  authDomain: "web-kepegawaian-satpol-pp.firebaseapp.com",
-  projectId: "web-kepegawaian-satpol-pp",
-  storageBucket: "web-kepegawaian-satpol-pp.appspot.com",
-  messagingSenderId: "490133570416",
-  appId: "1:490133570416:web:8e6f3d8456612481ca05b5",
-  measurementId: "G-6HEBSM3VT5",
-  databaseURL: "https://web-kepegawaian-satpol-pp-default-rtdb.asia-southeast1.firebasedatabase.app"
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC9M1LcVIivLlNBDxaJRiV-7Lb0fLo3yrg",
+  authDomain: "web-apk-kepegawaian.firebaseapp.com",
+  databaseURL: "https://web-apk-kepegawaian-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "web-apk-kepegawaian",
+  storageBucket: "web-apk-kepegawaian.firebasestorage.app",
+  messagingSenderId: "458664240424",
+  appId: "1:458664240424:web:096019e5f5f2ea83049c1d",
+  measurementId: "G-H39S5MCQ1M"
 };
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db = getDatabase(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getDatabase(app);
+const storage = getStorage(app);  // Tambahan untuk Storage
+function loadDashboard() {
+const dbRef = ref(db);
 
-  function loadDashboard() 
-    const dbRef = ref(db);
-
+    // Hitung Pelanggaran ASN
     get(child(dbRef, "asn")).then((snapshot) => {
-  if (snapshot.exists()) {
-    let total = 0;
-    let data = snapshot.val();
-    Object.values(data).forEach(item => {
-      total += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
-    });
-    document.getElementById("totalPelanggaran").innerHTML = total;
-  }
-});
+        if (snapshot.exists()) {
+            let total = 0;
+            let jumlah = Object.keys(snapshot.val()).length;
+            document.getElementById("jumlahASN").innerHTML = jumlah;
 
-get(child(dbRef, "nonasn")).then((snapshot) => {
-  if (snapshot.exists()) {
-    let total = document.getElementById("totalPelanggaran");
-    let current = parseInt(total.innerHTML);
-    let data = snapshot.val();
-    Object.values(data).forEach(item => {
-      current += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
-    });
-    total.innerHTML = current;
-  }
-});
+            Object.values(snapshot.val()).forEach(item => {
+                total += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
+            });
 
-  loadDashboard();
+            document.getElementById("totalPelanggaran").innerHTML = total;
+        }
+    });
+
+    // Hitung Pelanggaran Non-ASN
+    get(child(dbRef, "nonasn")).then((snapshot) => {
+        if (snapshot.exists()) {
+            let data = snapshot.val();
+            let jumlah = Object.keys(data).length;
+            document.getElementById("jumlahNonASN").innerHTML = jumlah;
+
+            let current = parseInt(document.getElementById("totalPelanggaran").innerHTML);
+            Object.values(data).forEach(item => {
+                current += item.pelanggaran ? parseInt(item.pelanggaran) : 0;
+            });
+
+            document.getElementById("totalPelanggaran").innerHTML = current;
+        }
+    });
+}
+loadDashboard();
 </script>
 <body>
 
@@ -81,6 +93,10 @@ get(child(dbRef, "nonasn")).then((snapshot) => {
   </a>
   <a href="#" class="nav-link" onclick="showPage('searchPage', this)"> 
     <i class="fas fa-search me-2"></i>Pencarian Data 
+  </a> 
+  <a href="#" class="nav-link" onclick="showPage('uploadBulananPage', this)">
+     <i class="fas fa-upload me-2"></i>Upload Bulanan
+  </a>  
   </a>
   <a href="#" class="nav-link" onclick="showPage('historyPegawai', this)">
     <i class="fas fa-clock-rotate-left me-2"></i>History Pegawai
@@ -474,9 +490,45 @@ get(child(dbRef, "nonasn")).then((snapshot) => {
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+  <!-- UPLOAD BULANAN -->
+<div id="uploadBulananPage" class="hidden">
+  <h4><i class="fas fa-upload me-2"></i>Upload File Bulanan</h4>
+  <hr>
 
+  <div class="card p-4" style="max-width:450px">
+    <div class="mb-3">
+      <label class="form-label">Pilih Bulan</label>
+      <input type="month" id="bulanUpload" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Pilih File</label>
+      <input type="file" id="fileUploadBulanan" class="form-control">
+    </div>
+
+    <button type="button" class="btn btn-primary w-100" onclick="uploadBulanan()">
+      <i class="fas fa-cloud-upload-alt me-2"></i>Upload
+    </button>
+  </div>
+
+  <div id="uploadInfo" class="alert alert-success mt-3 d-none">
+    File berhasil diupload ✅
+  </div>
+</div>
 <script>
+function uploadBulanan() {
+  const bulan = document.getElementById("bulanUpload").value;
+  const file = document.getElementById("fileUploadBulanan").files[0];
+
+  if (!bulan || !file) {
+    alert("Pilih bulan dan file!");
+    return;
+  }
+
+  alert("Upload berhasil (Firebase menyusul)");
+}
 /* -----------------------
    Inisialisasi DOM refs
    ----------------------- */
@@ -606,17 +658,17 @@ function loadNONASN() {
         <td>${row.sp || "-"}</td>
         <td>${row.sk || "-"}</td>
         <td>${row.status || "-"}</td>
-        <td>
-       <button class="btn btn-warning btn-sm" onclick="editNONASN(index)">
-       <i class="fas fa-edit"></i>
-       </button>
-       <button class="btn btn-danger btn-sm" onclick="deleteNONASN(index)">
-       <i class="fas fa-trash"></i>
-       </button>
-       </td>
-      </tr>
-    `;
-  });
+      <td>
+  <button class="btn btn-warning btn-sm" onclick="editNONASN(${i})">
+    <i class="fas fa-edit"></i>
+  </button>
+  <button class="btn btn-danger btn-sm" onclick="hapusNONASN(${i})">
+    <i class="fas fa-trash"></i>
+  </button>
+</td>
+    </tr>
+  `;
+});
 
   document.getElementById("jumlahNonASN").innerText = data.length;
   saveLocalHTML();
@@ -708,37 +760,59 @@ function editASN(i) {
 }
 
 // EDIT NON-ASN
-function editNonASN(i) {
-    const d = dataNONASN[i];
+function editNONASN(i) {
+  const data = JSON.parse(localStorage.getItem("dataNONASN")) || [];
+  const d = data[i];
 
-    document.getElementById("modalTitle").innerText = "Edit Non-ASN";
-    document.getElementById("jenisPegawai").value = "NONASN";
-    document.getElementById("indexPegawai").value = i;
+  if (!d) {
+    alert("Data tidak ditemukan");
+    return;
+  }
 
-    document.getElementById("nip").value = d.nip;
-    document.getElementById("nama").value = d.nama;
-    document.getElementById("jk").value = d.jk;
-    document.getElementById("pendidikan").value = d.pendidikan;
-    document.getElementById("jabatan").value = d.jabatan;
-    document.getElementById("alamat").value = d.alamat;
+  document.getElementById("nonasn_index").value = i;
+  document.getElementById("modalNONASNTitle").innerText = "Edit Non-ASN";
 
-    $("#modalPegawai").modal("show");
+  document.getElementById("nonasn_nama").value = d.nama || "";
+  document.getElementById("nonasn_nik").value = d.nip || "";
+  document.getElementById("nonasn_ttl").value = d.ttl || "";
+  document.getElementById("nonasn_jk").value = d.jk || "";
+  document.getElementById("nonasn_telp").value = d.telp || "";
+  document.getElementById("nonasn_email").value = d.email || "";
+  document.getElementById("nonasn_dom").value = d.domisili || "";
+  document.getElementById("nonasn_ktp").value = d.ktp || "";
+  document.getElementById("nonasn_jabatan").value = d.jabatan || "";
+  document.getElementById("nonasn_pendidikan").value = d.pendidikan || "";
+  document.getElementById("nonasn_kelas").value = d.kelas || "";
+  document.getElementById("nonasn_tim").value = d.tim || "";
+  document.getElementById("nonasn_bidangSk").value = d.bidangSK || "";
+  document.getElementById("nonasn_bidangPen").value = d.penempatan || "";
+  document.getElementById("nonasn_pelanggaran").value = d.pelanggaran || 0;
+  document.getElementById("nonasn_status").value = d.status || "Aktif";
+
+  const modal = new bootstrap.Modal(
+    document.getElementById("modalNONASN")
+  );
+  modal.show();
 }
 
 // HAPUS ASN
-function hapusASN(i) {
-    if (confirm("Hapus ASN ini?")) {
-        dataASN.splice(i, 1);
-        saveData();
-    }
+function hapusNONASN(i){
+  if(confirm("Yakin ingin menghapus data ASN ini?")){
+    let data = JSON.parse(localStorage.getItem("dataASN")) || [];
+    data.splice(i, 1);
+    localStorage.setItem("dataASN", JSON.stringify(data));
+    loadaASN();
+  }
 }
 
 // HAPUS NON-ASN
-function hapusNonASN(i) {
-    if (confirm("Hapus Non-ASN ini?")) {
-        dataNONASN.splice(i, 1);
-        saveData();
-    }
+function hapusNONASN(i){
+  if(confirm("Yakin ingin menghapus data NONASN ini?")){
+    let data = JSON.parse(localStorage.getItem("dataNONASN")) || [];
+    data.splice(i, 1);
+    localStorage.setItem("dataNONASN", JSON.stringify(data));
+    loadNONASN();
+  }
 }
 
 // RENDER TABEL
@@ -775,8 +849,8 @@ function renderTables() {
             <td>${p.jabatan}</td>
             <td>${p.alamat}</td>
             <td>
-                <button class="btn btn-warning btn-sm" onclick="editNonASN(${i})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="hapusNonASN(${i})">Delete</button>
+                <button class="btn btn-warning btn-sm" onclick="editNONASN(${i})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="hapusNONASN(${i})">Delete</button>
             </td>
         </tr>`;
     });
@@ -789,51 +863,6 @@ function updateDashboard() {
     document.getElementById("jumlahASN").innerText = dataASN.length;
     document.getElementById("jumlahNONASN").innerText = dataNONASN.length;
 }
-
-/* ==========================================================
-   IMPORT NON-ASN — FIX FORMAT EXCEL contoh.xlsx (FINAL)
-   ========================================================== */
-document.getElementById("importNONASN").addEventListener("change", function(e) {
-
-    let file = e.target.files[0];
-    if (!file) return;
-
-    let reader = new FileReader();
-    reader.readAsArrayBuffer(file);
-
-    reader.onload = function() {
-        let workbook = XLSX.read(reader.result, { type: "array" });
-        let sheet = workbook.Sheets[workbook.SheetNames[0]];
-        let raw = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-        let mapped = raw.map(row => ({
-            foto: "",
-            nama: row["NAMA"] || "",
-            nip: row["NIK"] || "",
-            ttl: row["TTL"] || "",
-            jk: row["JENIS_KELAMIN"] || "",
-            telp: row["NO_TELEPON"] || "",
-            email: row["EMAIL_PRIBADI"] || "",
-            domisili: row["ALAMAT_DOMISILI"] || "",
-            ktp: row["ALAMAT_KTP"] || "",
-            pendidikan: row["PENDIDIKAN"] || "",
-            jabatan: row["JABATAN"] || "",
-            gol: "-",
-            kelas: row["KELAS_JABATAN"] || "",
-            tim: row["TIM_REGU"] || "",
-            bidangSK: row["BIDANG_BERDASARKAN_SK/SPK"] || "",
-            penempatan: row["BIDANG_PENEMPATAN"] || "",
-            pelanggaran: 0,
-            sp: "",
-            sk: "",
-            status: "Aktif"
-        }));
-
-        localStorage.setItem("dataNONASN", JSON.stringify(mapped));
-        alert("✔ Import Excel Non-ASN Sukses & Data 100% Cocok dengan contoh.xlsx");
-        loadNONASN();
-    };
-});
 
 /* ============================
    Export NONASN (simple)
@@ -856,56 +885,42 @@ document.getElementById("formNONASN").addEventListener("submit", function(e){
     saveNONASN();
 });
 
-  function saveNONASN(){
-    let data = JSON.parse(localStorage.getItem("dataNONASN")) || [];
+function saveNONASN(){
+  let data = JSON.parse(localStorage.getItem("dataNONASN")) || [];
+  let index = parseInt(document.getElementById("nonasn_index").value);
 
-    let index = document.getElementById("nonasn_index").value;
-    let nama = document.getElementById("nonasn_nama").value;
+  let newData = {
+    nama: nonasn_nama.value,
+    nip: nonasn_nik.value,
+    ttl: nonasn_ttl.value,
+    jk: nonasn_jk.value,
+    telp: nonasn_telp.value,
+    email: nonasn_email.value,
+    domisili: nonasn_dom.value,
+    ktp: nonasn_ktp.value,
+    jabatan: nonasn_jabatan.value,
+    pendidikan: nonasn_pendidikan.value,
+    kelas: nonasn_kelas.value,
+    tim: nonasn_tim.value,
+    bidangSK: nonasn_bidangSk.value,
+    penempatan: nonasn_bidangPen.value,
+    pelanggaran: nonasn_pelanggaran.value,
+    status: nonasn_status.value
+  };
 
-   let newData = {
-    foto: fotoData,
-    nama: document.getElementById("nonasn_nama").value,
-    nik: document.getElementById("nonasn_nik").value,
-    ttl: document.getElementById("nonasn_ttl").value,
-    jk: document.getElementById("nonasn_jk").value,
-    telp: document.getElementById("nonasn_telp").value,
-    email: document.getElementById("nonasn_email").value,
-    dom: document.getElementById("nonasn_dom").value,
-    ktp: document.getElementById("nonasn_ktp").value,
-    jabatan: document.getElementById("nonasn_jabatan").value,
-    pendidikan: document.getElementById("nonasn_pendidikan").value,
-    kelas: document.getElementById("nonasn_kelas").value,
-    tim: document.getElementById("nonasn_tim")?.value || "",
-    bidangSK: document.getElementById("nonasn_bidangSk")?.value || "",
-    bidangPen: document.getElementById("nonasn_bidangPen")?.value || "",
-    pelanggaran: document.getElementById("nonasn_pelanggaran").value,  // 👈 WAJIB ADA INI
-    suratPeringatan: fileSP,
-    sk: fileSK,
-    status: document.getElementById("nonasn_status").value
-};
+  if(index >= 0){
+    data[index] = newData;   // ✅ EDIT
+  } else {
+    data.push(newData);      // ✅ TAMBAH
+  }
 
-    // Edit
-    if(index >= 0){
-        data[index] = pegawai;
-    }
-    // Tambah baru
-    else {
-        data.push(pegawai);
-    }
+  localStorage.setItem("dataNONASN", JSON.stringify(data));
+  loadNONASN();
 
-    localStorage.setItem("dataNONASN", JSON.stringify(data));
-
-    // Reload tabel
-    loadNONASN();
-
-    // Tutup modal
-    bootstrap.Modal.getInstance(document.getElementById("modalNONASN")).hide();
-
-    // Reset form
-    document.getElementById("formNONASN").reset();
+  bootstrap.Modal.getInstance(modalNONASN).hide();
+  formNONASN.reset();
+  nonasn_index.value = -1;
 }
-
-
 
 /* ============================
    FORM HISTORY
@@ -956,13 +971,6 @@ function updateStats() {
 }
 
 /* ============================
-   Import Excel History
-   ============================ */
-document.getElementById("importExcel").addEventListener("change", function(e){
-  alert("Import Excel history siap — file akan diolah jika Anda mau.");
-});
-
-/* ============================
    Export Excel History
    ============================ */
 function exportExcelHistory() {
@@ -1000,14 +1008,13 @@ settingForm.addEventListener("submit", function(e) {
 /* ============================
    Inisialisasi load
    ============================ */
-loadLocalHTML();
+loadDashboardFromFirebase();
+loadNASN();
 loadNONASN();
 updateStats();
 </script>
-
 </body>
 </html>
-
 
 
 
